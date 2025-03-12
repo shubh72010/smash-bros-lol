@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2-Player Smash Clone</title>
+    <style>
+        body { margin: 0; overflow: hidden; background: #87CEEB; }
+        canvas { display: block; }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas"></canvas>
+    <script>
+        const canvas = document.getElementById("gameCanvas");
+        const ctx = canvas.getContext("2d");
+        canvas.width = 800;
+        canvas.height = 600;
+
+        class Player {
+            constructor(x, y, color, keys) {
+                this.x = x;
+                this.y = y;
+                this.width = 50;
+                this.height = 50;
+                this.color = color;
+                this.velocity = { x: 0, y: 0 };
+                this.speed = 5;
+                this.gravity = 0.5;
+                this.jumpPower = -10;
+                this.onGround = false;
+                this.keys = keys;
+            }
+            draw() {
+                ctx.fillStyle = this.color;
+                ctx.fillRect(this.x, this.y, this.width, this.height);
+            }
+            update() {
+                this.velocity.y += this.gravity;
+                this.y += this.velocity.y;
+                if (this.y + this.height >= canvas.height - 50) {
+                    this.y = canvas.height - 50 - this.height;
+                    this.velocity.y = 0;
+                    this.onGround = true;
+                } else {
+                    this.onGround = false;
+                }
+                this.x += this.velocity.x;
+                this.x = Math.max(0, Math.min(canvas.width - this.width, this.x));
+                this.draw();
+            }
+        }
+        
+        const player1 = new Player(100, 500, "red", { left: "a", right: "d", jump: "w" });
+        const player2 = new Player(600, 500, "blue", { left: "ArrowLeft", right: "ArrowRight", jump: "ArrowUp" });
+        
+        const keys = {};
+        window.addEventListener("keydown", (e) => keys[e.key] = true);
+        window.addEventListener("keyup", (e) => keys[e.key] = false);
+        
+        function gameLoop() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = "#654321";
+            ctx.fillRect(0, canvas.height - 50, canvas.width, 50);
+            
+            [player1, player2].forEach(player => {
+                player.velocity.x = 0;
+                if (keys[player.keys.left]) player.velocity.x = -player.speed;
+                if (keys[player.keys.right]) player.velocity.x = player.speed;
+                if (keys[player.keys.jump] && player.onGround) player.velocity.y = player.jumpPower;
+                player.update();
+            });
+            requestAnimationFrame(gameLoop);
+        }
+        
+        gameLoop();
+    </script>
+</body>
+</html>
